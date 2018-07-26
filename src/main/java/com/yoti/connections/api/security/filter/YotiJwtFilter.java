@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -38,10 +37,8 @@ public class YotiJwtFilter extends OncePerRequestFilter {
             log.info("the jwt token  is {}",jwtToken);
             Person person = dataAccess.findPersonById(BigInteger.ONE);
             YotiPrincipal principal = new YotiPrincipal(person,Collections.emptySet());
-//            SecurityContextHolder.getContext().setAuthentication(principal);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             log.info("sdff asf");
-         //   SecurityContextHolder.clearContext();
             SecurityContextHolder.getContext().setAuthentication(principal);
         }
         else {
