@@ -8,8 +8,8 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.yoti.connections.api.config.JwtConfigValues;
 import com.yoti.connections.api.security.jwt.JwtService;
+import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -28,6 +28,7 @@ public class JwtServiceImpl implements JwtService {
     private final Clock clock;
 
     private final static String USER_ID_CLAIM = "userId";
+
     private final static String ISSUER_NAME = "yoti";
 
     @Override
@@ -51,17 +52,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String verifyToken(final String token) throws AccessDeniedException {
+    public String verifyToken(final String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(configValues.getSecret());
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer(ISSUER_NAME)
                     .build();
             DecodedJWT jwt = verifier.verify(token);
-            Claim claim =jwt.getClaim(USER_ID_CLAIM);
+            Claim claim = jwt.getClaim(USER_ID_CLAIM);
             return claim.asString();
-        } catch (UnsupportedEncodingException e) {
-            throw new AccessDeniedException(e.getMessage());
+        } catch (Exception e) {
+            throw new JwtProcessingException(e.getMessage());
         }
     }
 

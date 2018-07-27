@@ -3,10 +3,10 @@ package com.yoti.connections.api.security.filter;
 import com.yoti.connections.api.data.DataAccess;
 import com.yoti.connections.api.domain.Person;
 import com.yoti.connections.api.security.jwt.JwtService;
+import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 import com.yoti.connections.api.security.model.YotiPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -36,22 +36,31 @@ public class YotiJwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         log.info("{} ", httpServletRequest.getRequestURI());
         String jwtToken = getToken(httpServletRequest);
-        BigInteger userId = validateAndFetchUserIdFromToken(jwtToken);
-        if(userId!=null){
-            log.info("the jwt token  is {}", jwtToken);
-            Person person = dataAccess.findPersonById(userId);
-            YotiPrincipal principal = new YotiPrincipal(person, Collections.emptySet());
-            log.info("the user accesss the resource is {}", person.getId());
-            SecurityContextHolder.getContext().setAuthentication(principal);
-            filterChain.doFilter(httpServletRequest, httpServletResponse);
-        }
-        else {
+        try {
+            BigInteger userId = validateAndFetchUserIdFromToken(jwtToken);
+            if(userId!=null){
+                log.info("the jwt token  is {}", jwtToken);
+                Person person = dataAccess.findPersonById(userId);
+                YotiPrincipal principal = new YotiPrincipal(person, Collections.emptySet());
+                log.info("the user accesss the resource is {}", person.getId());
+                SecurityContextHolder.getContext().setAuthentication(principal);
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+            }
+            else {
+                httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            }
+        } catch (JwtProcessingException e) {
+            log.info("the jwt process failed dut to {}",e.getMessage());
             httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ServletException e) {
+            e.printStackTrace();
         }
 
     }
 
-    private BigInteger validateAndFetchUserIdFromToken(final String jwtToken) throws AccessDeniedException {
+    private BigInteger validateAndFetchUserIdFromToken(final String jwtToken) {
         if ( !StringUtils.isEmpty(jwtToken) ) {
             String userIdStr = jwtService.verifyToken(jwtToken);
             return new BigInteger(userIdStr);

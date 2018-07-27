@@ -1,6 +1,6 @@
 package com.yoti.connections.api.security.jwt;
 
-import org.springframework.security.access.AccessDeniedException;
+import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 
 import java.math.BigInteger;
 
@@ -8,7 +8,7 @@ public interface JwtService {
 
     String createJwtString(BigInteger userId);
 
-    String verifyToken(String token) throws AccessDeniedException;
+    String verifyToken(String token) throws JwtProcessingException;
 
     String decodeToken(String token);
 
