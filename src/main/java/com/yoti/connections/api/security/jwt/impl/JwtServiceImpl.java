@@ -9,6 +9,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.yoti.connections.api.config.JwtConfigValues;
 import com.yoti.connections.api.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -50,7 +51,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String verifyToken(final String token) {
+    public String verifyToken(final String token) throws AccessDeniedException {
         try {
             Algorithm algorithm = Algorithm.HMAC256(configValues.getSecret());
             JWTVerifier verifier = JWT.require(algorithm)
@@ -60,9 +61,8 @@ public class JwtServiceImpl implements JwtService {
             Claim claim =jwt.getClaim(USER_ID_CLAIM);
             return claim.asString();
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new AccessDeniedException(e.getMessage());
         }
-        return null;
     }
 
     @Override

@@ -32,7 +32,7 @@ public class YotiAuthenticationProvider implements AuthenticationProvider {
                     .givenName("givenname"+a)
                     .familyName("familyName"+a)
                     .build();
-            access.savePerson(loginPerson);
+            loginPerson = access.savePerson(loginPerson);
             return new YotiPrincipal(loginPerson,Collections.emptySet());
         }
         else {

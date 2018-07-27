@@ -4,6 +4,7 @@ import com.yoti.connections.api.controllers.LoginController;
 import com.yoti.connections.api.security.filter.YotiAuthenticationFilter;
 import com.yoti.connections.api.security.filter.YotiJwtFilter;
 import com.yoti.connections.api.security.handler.LoginSuccessHandler;
+import com.yoti.connections.api.security.jwt.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private YotiJwtFilter yotiJwtFilter;
+
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
@@ -58,7 +62,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     private AuthenticationSuccessHandler successHandler() {
-        final LoginSuccessHandler handler = new LoginSuccessHandler();
+        final LoginSuccessHandler handler = new LoginSuccessHandler(jwtService);
         handler.setAlwaysUseDefaultTargetUrl(true);
         handler.setDefaultTargetUrl("https://localhost:9000/");
         return handler;
