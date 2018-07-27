@@ -4,6 +4,7 @@ import com.yoti.connections.api.controllers.LoginController;
 import com.yoti.connections.api.security.filter.YotiAuthenticationFilter;
 import com.yoti.connections.api.security.filter.YotiJwtFilter;
 import com.yoti.connections.api.security.handler.LoginSuccessHandler;
+import com.yoti.connections.api.security.handler.YotiConnectionLogoutHandler;
 import com.yoti.connections.api.security.jwt.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.*;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
@@ -38,16 +44,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 .csrf().disable()
-               // .logout().clearAuthentication(true).invalidateHttpSession(true).logoutUrl(LOGOUT).permitAll()
-                //.and()
+                .logout().clearAuthentication(true).invalidateHttpSession(true).logoutUrl(LOGOUT).permitAll()
+                .addLogoutHandler(getLogoutHandler())
+                .logoutSuccessUrl("https://localhost:9000/")
+                .and()
                 .formLogin().disable()
-                .addFilterBefore(getLoginFilter(),UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(getFilter(),BasicAuthenticationFilter.class);
+                .addFilterBefore(getLoginFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(getFilter(), BasicAuthenticationFilter.class)
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
     }
 
+    private LogoutHandler getLogoutHandler() {
+        LogoutHandler handler = new  YotiConnectionLogoutHandler();
+        return handler;
+    }
+
     private Filter getLoginFilter() {
-        YotiAuthenticationFilter filter = new YotiAuthenticationFilter(manager,LoginController.LOGIN_PATH);
+        YotiAuthenticationFilter filter = new YotiAuthenticationFilter(manager, LoginController.LOGIN_PATH);
         filter.setAllowSessionCreation(false);
         filter.setAuthenticationSuccessHandler(successHandler());
         filter.setAuthenticationFailureHandler(failureHandler());
@@ -59,7 +73,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         handler.setDefaultFailureUrl("https://localhost:9000/logout");
         return handler;
     }
-
 
     private AuthenticationSuccessHandler successHandler() {
         final LoginSuccessHandler handler = new LoginSuccessHandler(jwtService);

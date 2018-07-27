@@ -26,6 +26,7 @@ public class YotiAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
     @Override
     public Authentication attemptAuthentication(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) throws AuthenticationException, IOException, ServletException {
+
        log.info("starting to filter the login process");
        String token = obtainToken(httpServletRequest);
        final YotiAuthenticationToken authenticationToken = new YotiAuthenticationToken(token);
