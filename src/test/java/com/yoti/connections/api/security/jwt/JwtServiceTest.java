@@ -25,7 +25,7 @@ public class JwtServiceTest {
 
     @Test
     public void verfiY() {
-        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VJZCI6IjEiLCJpc3MiOiJ5b3RpIiwiZXhwIjoxNTMyNjIwNTA3fQ.MbFYz22-Q2B50GNsNA1q8KIk_YRREGvoufs-RjMyqcI";
+        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ5b3RpIiwiZXhwIjoxNTMyNjgxNjQyLCJ1c2VySWQiOiIxIiwiaWF0IjoxNTMyNjgwNDQyfQ.5aeiS7nKwzuShx8HJbGQugeySN9gje_3_L8KqJS7nHw";
         String jjj = service.verifyToken(token);
         log.info(jjj);
     }

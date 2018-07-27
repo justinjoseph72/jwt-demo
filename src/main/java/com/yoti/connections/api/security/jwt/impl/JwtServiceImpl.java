@@ -6,9 +6,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.yoti.connections.api.config.JwtConfigValues;
 import com.yoti.connections.api.security.jwt.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -19,23 +19,28 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
-    @Value("${yoti.jwt.key}")
-    private String secret;
+    private final JwtConfigValues configValues;
 
-    @Autowired
-    private Clock clock;
+    private final Clock clock;
+
+    private final static String USER_ID_CLAIM = "userId";
+    private final static String ISSUER_NAME = "yoti";
 
     @Override
     public String createJwtString(final BigInteger userId) {
         try {
-            Algorithm algorithmHS = Algorithm.HMAC256(secret);
-            Instant instant = clock.instant().plus(1, ChronoUnit.MINUTES);
+            Algorithm algorithmHS = Algorithm.HMAC256(configValues.getSecret());
+            int timeoutInMinutes = configValues.getTimeout();
+            Date issuedAt = Date.from(clock.instant());
+            Instant instant = clock.instant().plus(timeoutInMinutes, ChronoUnit.MINUTES);
             Date expriyDate = Date.from(instant);
-            String token = JWT.create().withIssuer("yoti")
-                    .withClaim("useId",userId.toString())
+            String token = JWT.create().withIssuer(ISSUER_NAME)
+                    .withClaim(USER_ID_CLAIM, userId.toString())
                     .withExpiresAt(expriyDate)
+                    .withIssuedAt(issuedAt)
                     .sign(algorithmHS);
             return token;
         } catch (UnsupportedEncodingException e) {
@@ -46,15 +51,15 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String verifyToken(final String token) {
-        try{
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(configValues.getSecret());
             JWTVerifier verifier = JWT.require(algorithm)
-                    .withIssuer("yoti")
+                    .withIssuer(ISSUER_NAME)
                     .build();
             DecodedJWT jwt = verifier.verify(token);
-            return jwt.getPayload();
-
-        }catch (UnsupportedEncodingException e){
+            Claim claim =jwt.getClaim(USER_ID_CLAIM);
+            return claim.asString();
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return null;
@@ -62,11 +67,11 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String decodeToken(final String token) {
-        try{
+        try {
             DecodedJWT jwt = JWT.decode(token);
-            Claim claim = jwt.getClaim("useId");
+            Claim claim = jwt.getClaim(USER_ID_CLAIM);
             return claim.asString();
-        }catch (JWTDecodeException e){
+        } catch (JWTDecodeException e) {
             e.printStackTrace();
         }
         return null;
