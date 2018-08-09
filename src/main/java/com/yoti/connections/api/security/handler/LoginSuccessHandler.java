@@ -1,11 +1,11 @@
 package com.yoti.connections.api.security.handler;
 
 import com.yoti.connections.api.security.jwt.JwtService;
-import com.yoti.connections.api.security.model.YotiPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -26,8 +26,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         BigInteger userId = (BigInteger)authentication.getPrincipal();
         log.info("the principal is {}",userId);
         String jwtToken = getJwtTokenForUserId(userId);
-        String cookieStr = JWT_COKKIE_NAME + "=" + jwtToken;
-        response.addHeader("Set-Cookie", cookieStr);
+        Cookie cookie = new Cookie(JWT_COKKIE_NAME,jwtToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        response.addCookie(cookie);
         String targetUrl = getDefaultTargetUrl();
         this.clearAuthenticationAttributes(request);
         this.getRedirectStrategy().sendRedirect(request, response, targetUrl);
