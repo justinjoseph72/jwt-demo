@@ -10,6 +10,7 @@ import com.yoti.connections.api.config.JwtConfigValues;
 import com.yoti.connections.api.security.jwt.JwtService;
 import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -21,6 +22,7 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtServiceImpl implements JwtService {
 
     private final JwtConfigValues configValues;
@@ -44,6 +46,7 @@ public class JwtServiceImpl implements JwtService {
                     .withExpiresAt(expriyDate)
                     .withIssuedAt(issuedAt)
                     .sign(algorithmHS);
+            log.info("the token is {}",token);
             return token;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

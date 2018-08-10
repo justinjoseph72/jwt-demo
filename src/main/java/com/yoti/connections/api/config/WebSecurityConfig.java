@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.servlet.Filter;
 
@@ -43,7 +44,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(LoginController.LOGIN_PATH).permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .csrf().disable()
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and()
+                .headers()
+                .xssProtection().block(true)
+                .xssProtectionEnabled(true)
+                .and()
+                .frameOptions().deny()
+                .httpPublicKeyPinning().disable()
+                .cacheControl().and()
+                .httpStrictTransportSecurity().disable()
+                .and()
                 .logout().clearAuthentication(true).invalidateHttpSession(true).logoutUrl(LOGOUT).permitAll()
                 .addLogoutHandler(getLogoutHandler())
                 .logoutSuccessUrl("https://localhost:9000/")
@@ -56,7 +68,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private LogoutHandler getLogoutHandler() {
-        LogoutHandler handler = new  YotiConnectionLogoutHandler();
+        LogoutHandler handler = new YotiConnectionLogoutHandler();
         return handler;
     }
 
