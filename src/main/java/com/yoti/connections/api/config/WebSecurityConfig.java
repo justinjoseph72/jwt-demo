@@ -1,6 +1,8 @@
 package com.yoti.connections.api.config;
 
 import com.yoti.connections.api.controllers.LoginController;
+import com.yoti.connections.api.security.csrf.CustomCsrfFilter;
+import com.yoti.connections.api.security.csrf.CustomCsrfRequestMatcher;
 import com.yoti.connections.api.security.filter.YotiAuthenticationFilter;
 import com.yoti.connections.api.security.filter.YotiJwtFilter;
 import com.yoti.connections.api.security.handler.LoginSuccessHandler;
@@ -20,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
 
 import javax.servlet.Filter;
 
@@ -38,13 +41,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private CustomCsrfRequestMatcher customCsrfRequestMatcher;
+
+    @Autowired
+    private CustomCsrfFilter customCsrfFilter;
+
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers(LoginController.LOGIN_PATH).permitAll()
                 .anyRequest().authenticated()
-                .and()
-                .csrf()
+                .and().csrf()
+                //   .requireCsrfProtectionMatcher(customCsrfRequestMatcher)
+              //  .disable()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
                 .headers()
@@ -61,6 +71,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("https://localhost:9000/")
                 .and()
                 .formLogin().disable()
+              //  .addFilterBefore(customCsrfFilter, CsrfFilter.class)
                 .addFilterBefore(getLoginFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(getFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
