@@ -7,7 +7,8 @@ import com.yoti.connections.api.security.filter.YotiAuthenticationFilter;
 import com.yoti.connections.api.security.filter.YotiJwtFilter;
 import com.yoti.connections.api.security.handler.LoginSuccessHandler;
 import com.yoti.connections.api.security.handler.YotiConnectionLogoutHandler;
-import com.yoti.connections.api.security.jwt.JwtService;
+import com.yoti.connections.api.security.jwt.CsrfJwtTokenService;
+import com.yoti.connections.api.security.jwt.LoginJwtTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +22,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 
 import javax.servlet.Filter;
@@ -39,7 +39,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private YotiJwtFilter yotiJwtFilter;
 
     @Autowired
-    private JwtService jwtService;
+    private LoginJwtTokenService loginJwtTokenService;
+
+    @Autowired
+    private CsrfJwtTokenService csrfJwtTokenService;
 
     @Autowired
     private CustomCsrfRequestMatcher customCsrfRequestMatcher;
@@ -54,9 +57,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and().csrf()
                 //   .requireCsrfProtectionMatcher(customCsrfRequestMatcher)
-              //  .disable()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .and()
+                .disable()
+               // .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                //.and()
                 .headers()
                 .xssProtection().block(true)
                 .xssProtectionEnabled(true)
@@ -71,7 +74,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("https://localhost:9000/")
                 .and()
                 .formLogin().disable()
-              //  .addFilterBefore(customCsrfFilter, CsrfFilter.class)
+                .addFilterBefore(customCsrfFilter, CsrfFilter.class)
                 .addFilterBefore(getLoginFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(getFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -98,7 +101,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private AuthenticationSuccessHandler successHandler() {
-        final LoginSuccessHandler handler = new LoginSuccessHandler(jwtService);
+        final LoginSuccessHandler handler = new LoginSuccessHandler(loginJwtTokenService,csrfJwtTokenService);
         handler.setAlwaysUseDefaultTargetUrl(true);
         handler.setDefaultTargetUrl("https://localhost:9000/");
         return handler;

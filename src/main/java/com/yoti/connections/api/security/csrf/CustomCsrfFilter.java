@@ -1,5 +1,7 @@
 package com.yoti.connections.api.security.csrf;
 
+import com.yoti.connections.api.security.jwt.CsrfJwtTokenService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
@@ -18,10 +20,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class CustomCsrfFilter extends OncePerRequestFilter {
 
-    private final String HEADER_NAME = "custom_csrf";
+    private final String HEADER_NAME = "yc_csrf_token";
+
+    private final CsrfJwtTokenService csrfJwtTokenService;
 
     private final AccessDeniedHandler accessDeniedHandler = new AccessDeniedHandlerImpl();
 
@@ -38,6 +43,7 @@ public class CustomCsrfFilter extends OncePerRequestFilter {
                 log.warn("not custom csrf token present ");
                 accessDeniedHandler.handle(request, response, new MissingCsrfTokenException(actualToken));
             }
+            String csrf_Token = csrfJwtTokenService.verifyToken(actualToken);
             log.info("continuing from the filter chain");
             filterChain.doFilter(request, response);
         }

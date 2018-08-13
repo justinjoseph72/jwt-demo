@@ -2,7 +2,7 @@ package com.yoti.connections.api.security.filter;
 
 import com.yoti.connections.api.data.DataAccess;
 import com.yoti.connections.api.domain.Person;
-import com.yoti.connections.api.security.jwt.JwtService;
+import com.yoti.connections.api.security.jwt.LoginJwtTokenService;
 import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 import com.yoti.connections.api.security.model.YotiPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class YotiJwtFilter extends OncePerRequestFilter {
 
     private final DataAccess dataAccess;
 
-    private final JwtService jwtService;
+    private final LoginJwtTokenService loginJwtTokenService;
 
     @Override
     protected void doFilterInternal(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse, final FilterChain filterChain)
@@ -62,7 +62,7 @@ public class YotiJwtFilter extends OncePerRequestFilter {
 
     private BigInteger validateAndFetchUserIdFromToken(final String jwtToken) {
         if ( !StringUtils.isEmpty(jwtToken) ) {
-            String userIdStr = jwtService.verifyToken(jwtToken);
+            String userIdStr = loginJwtTokenService.verifyToken(jwtToken);
             return new BigInteger(userIdStr);
         } else {
             return null;

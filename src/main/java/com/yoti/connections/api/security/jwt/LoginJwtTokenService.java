@@ -4,7 +4,7 @@ import com.yoti.connections.api.security.jwt.exception.JwtProcessingException;
 
 import java.math.BigInteger;
 
-public interface JwtService {
+public interface LoginJwtTokenService {
 
     String createJwtString(BigInteger userId);
 

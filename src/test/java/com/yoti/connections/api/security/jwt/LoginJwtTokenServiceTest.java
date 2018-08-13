@@ -12,10 +12,10 @@ import java.math.BigInteger;
 @Slf4j
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class JwtServiceTest {
+public class LoginJwtTokenServiceTest {
 
     @Autowired
-    private JwtService service;
+    private LoginJwtTokenService service;
 
     @Test
     public void shouldGenreteJwt() {
